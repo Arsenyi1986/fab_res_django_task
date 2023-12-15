@@ -16,7 +16,7 @@ class Mailing(models.Model):
                                  editable=False, verbose_name='Уникальный id рассылки')
     launch_date_time = models.DateTimeField(verbose_name='дата и время запуска рассылки')
     text = models.TextField(verbose_name="текст сообщения для доставки клиенту")
-    client_filter = models.CharField(verbose_name="фильтр свойств клиентов")
+    client_filter = models.CharField(max_length=255, verbose_name="фильтр свойств клиентов")
     end_date_time = models.DateTimeField(verbose_name="дата и время окончания рассылки")
 
     def __str__(self):
@@ -46,4 +46,3 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Сообщение {self.unique_id}"
-    
