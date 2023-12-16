@@ -3,9 +3,10 @@ from .models import Mailing, Client, Message
 
 
 class MailingSerializer(serializers.ModelSerializer):
+    client_filter = ClientFilterSerializerField(default=dict)
     class Meta:
         model = Mailing
-        fields = "__all__"
+        fields = tuple(field.name for field in model._meta.fields)
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -44,3 +45,4 @@ class ClientPropertyFilterSerializer(serializers.ModelSerializer):
         model = Client
         fields = "operator_code", "tag"
         extra_kwargs = {field: dict(required=False) for field in fields}
+
