@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from celery.schedules import crontab
+from environ import Env
+
+Env.read_env(".env")
+env = Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +32,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+JWT = env("JWT")
 
 # Application definition
 
@@ -127,3 +133,38 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_BROKER_URL = "redis://localhost:6379"
 CELERY_RESULT_BACKEND = "redis://localhost:6379"
+
+CELERY_BEAT_SCHEDULE = {
+    "send_notifications": {
+        "task": "mainapp.tasks.active_mailings_check",
+        "schedule": crontab(minute=f"*/1")
+    }
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_RENDERER_CLASSES": ["drf_ujson.renderers.UJSONRenderer"],
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Notification Service",
+    "DESCRIPTION": "<h2> Сервис уведомлений </h2>",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "docExpansion": "full",
+        "filter": True,
+        "displayRequestDuration": True,
+        "showCommonExtensions": True,
+        "useUnsafeMarkdown": True,
+        "tryItOutEnabled": True,
+        "requestSnippetsEnabled": True,
+        "requestSnippets": {"defaultExpanded": False},
+        "defaultModelExpandDepth": 5,
+        "defaultModelsExpandDepth": 4,
+        "syntaxHighlight.theme": "monokai",
+    },
+}
+

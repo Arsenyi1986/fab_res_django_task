@@ -23,6 +23,11 @@ class MailingCreate(generics.CreateAPIView):
     serializer_class = MailingSerializer
 
 
+class MailingGeneralStatisticsView(generics.ListAPIView):
+    queryset = Mailing.objects.all()
+    serializer_class = MailingGeneralStatisticSerializer
+
+
 class MailingUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Mailing.objects.all()
     serializer_class = MailingSerializer
@@ -36,8 +41,3 @@ class MailingDetailedStatisticsView(generics.GenericAPIView):
         messages = Message.objects.filters(mailing_id=mailing_id)
         serialized_messages = MessageSerializer(messages, many=True).data
         return Response(serialized_messages, status.HTTP_200_OK)
-
-
-class MailingGeneralStatisticsView(generics.ListAPIView):
-    queryset = Mailing.objects.all()
-    serializer_class = MailingGeneralStatisticSerializer

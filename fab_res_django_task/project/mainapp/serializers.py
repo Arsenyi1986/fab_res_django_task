@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Mailing, Client, Message
+from .fields import ClientFilterSerializerField
 
 
 class MailingSerializer(serializers.ModelSerializer):

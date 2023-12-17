@@ -4,6 +4,7 @@ from .models import Message, Client, Mailing
 from pydantic import BaseModel
 from celery import shared_task
 from datetime import datetime
+from django.utils import timezone
 
 
 class Task(BaseModel):
@@ -21,6 +22,7 @@ class Msg(BaseModel):
 
 
 def get_task_mailing(mailing, now_time=datetime.now()):
+    """Генерация списка задач по переданному объекту рассылки на основе заданных рассылок и текущего времени"""
     filter = mailing.client_filter
     clients = Client.objects.all()
     filter_key = "operator_code"
@@ -30,14 +32,23 @@ def get_task_mailing(mailing, now_time=datetime.now()):
     if filter_key in filter:
         clients = clients.filter(operator_code=filter[filter_key])
     for client in clients:
-        if
-
+        if (timezone.localtime(mailing.launch_date_time, client.time_zone)
+           < timezone.localtime(now_time, client.time_zone)
+           < timezone.localtime(mailing.end_date_time, client.time_zone)):
+            yield Task(
+                client_id=client.unique_id,
+                mailing_id=mailing.unique_id,
+                phone_number=client.phone_number,
+                message=mailing.text,
+                stop_time=mailing.end_date_time
+            )
 
 
 def get_tasks_mailings():
+    """Генерация списка задач для всех рассылок"""
     now = datetime.now()
     for mailing in Mailing.objects.all():
-
+        yield from get_task_mailing(mailing, now)
 
 
 @shared_task()
@@ -64,5 +75,11 @@ def add_tasks(tasks):
         client_notification.apply_async(args=[task.json()])
 
 
+@shared_task()
 def active_mailings_check():
-    add_tasks()
+    """Задачи запускаемые по расписанию (ищет клиентов для отправки, а также текущее время)"""
+    add_tasks(get_tasks_mailings())
+
+
+def process_active_mailing(mailing_unique_id):
+    add_tasks(get_task_mailing(Mailing.objects.get(unique_id=mailing_unique_id)))
