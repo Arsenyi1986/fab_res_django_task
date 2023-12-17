@@ -42,6 +42,6 @@ class MessageAdmin(CustomModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('create_date_time', 'status', 'mailing_id', 'client_id')
+            'fields': ('status', 'mailing_id', 'client_id')
         }),
     )
